@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "glad.h": "c",
+        "cmath": "c",
+        "random": "c"
+    }
+}
