@@ -42,4 +42,7 @@ void MontaIndicesToroPorRevolucao(int num_pontos_circulo, int num_pontos_rotacao
 void GerarNormaisEsfera(int num_pontos, int qtdAngulos, const GLfloat* vertices, GLfloat* normals);
 void GerarNormaisToro(int num_pontos_circulo, int num_pontos_rotacao, float R, float r, const GLfloat* vertices, GLfloat* normals);
 void GerarNormaisConeComTampa(int num_pontos, int qtdAngulos, GLfloat *vertices, GLfloat *normals);
+void MontaMalhaENormaisToroPorRevolucao(int num_pontos_circulo, int num_pontos_rotacao, 
+                                float R, float r, 
+                                GLfloat* vertices, GLfloat* normais);
 #endif /* INCLUDE_MYTOOLS_H_ */

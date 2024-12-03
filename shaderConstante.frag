@@ -21,9 +21,9 @@ void main(void) {
     vec3 ambiente = ka * ambientColor;
 
     // Componente Difusa: luz que depende da direção da luz e da normal da superfície
-    vec3 lightDir = normalize(lightPos - fragPos); // Vetor direção da luz
-    float NdotL = max(dot(normalize(fragNormal), lightDir), 0.0); // Produto escalar normalizado
-    vec3 difusa = kd * NdotL * lightColor; // Contribuição da luz difusa
+    vec3 lightDir = normalize(lightPos - fragPos); //Vetor direção da luz
+    float NdotL = max(dot(normalize(fragNormal), lightDir), 0.0); //Produto escalar normalizado
+    vec3 difusa = kd * NdotL * lightColor; //Contribuição da luz difusa
 
     // Componente Especular: brilho/reflexo da luz que depende da direção da câmera
     vec3 viewDir = normalize(cameraPos - fragPos); // Vetor direção para a câmera
@@ -32,7 +32,6 @@ void main(void) {
     vec3 especular = ks * pow(RdotV, shininess) * lightColor; // Contribuição da luz especular
 
     // Cor Final: Combinação das três componentes com a cor do triângulo
-    vec3 finalColor = (ambiente + difusa + especular) * vec3(vColor);
-
+    vec3 finalColor = (difusa) * vec3(vColor); //(ambiente + difusa + especular) * vec3(vColor);
     fColor = vec4(finalColor, 1.0); // Atribui a cor final ao fragmento
 }

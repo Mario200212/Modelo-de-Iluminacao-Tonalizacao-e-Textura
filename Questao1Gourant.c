@@ -332,10 +332,10 @@ void init(void) {
 
     // Create vertex shader
 	// ---------------------------------------
-	GLuint vertexShader = generateShader(GL_VERTEX_SHADER, "./shaderGourant.vert");
+	GLuint vertexShader = generateShader(GL_VERTEX_SHADER, "./shaderConstante.vert");
 
     // Create fragment shader
-	GLuint fragmentShader = generateShader(GL_FRAGMENT_SHADER, "./shaderGourant.frag");
+	GLuint fragmentShader = generateShader(GL_FRAGMENT_SHADER, "./shaderConstante.frag");
 
     // Create Program and link shaders
     shaderProgram = glCreateProgram();
@@ -411,10 +411,9 @@ void init(void) {
 
     //TORO
     GLfloat *verticesToro = (GLfloat *)malloc(4 *qtdAngulos* num_pontos * sizeof(GLfloat));
-    MontaMalhaToroPorRevolucao(num_pontos, qtdAngulos,0.5, 0.25, verticesToro);
     GLfloat *normalsToro = (GLfloat *)malloc(4 * num_pontos * qtdAngulos * sizeof(GLfloat));
-    GerarNormaisToro(num_pontos, qtdAngulos, 0.5f, 0.25f, verticesToro, normalsToro);
-    
+    MontaMalhaENormaisToroPorRevolucao(num_pontos, qtdAngulos, 0.5, 0.25, verticesToro, normalsToro);
+
     //Cubo
     float L=0.5f;
     GLfloat verticesCubo[] = {

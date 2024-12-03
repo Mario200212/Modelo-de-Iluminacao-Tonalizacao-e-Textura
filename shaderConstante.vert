@@ -16,8 +16,9 @@ void main(void) {
     // Transformar o vértice para o espaço de projeção
     gl_Position = u_projMatrix * u_modelViewMatrix * vertex;
 
+    mat3 normalmat = mat3(u_modelMatrix);
     // Passar os valores uniformes para o triângulo
     fragPos = vec3(u_modelMatrix * vertex); // Posição no espaço do mundo
-    fragNormal = normalize(mat3(transpose(inverse(u_modelMatrix))) * vec3(normal)); // Normal transformada
+    fragNormal = normalize(normalmat * vec3(normal)); // Normal transformada
     vColor = color; // Cor constante
 }

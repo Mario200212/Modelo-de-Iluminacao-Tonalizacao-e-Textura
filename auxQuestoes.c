@@ -878,3 +878,70 @@ void GerarNormaisConeComTampa(int num_pontos, int qtdAngulos, GLfloat *vertices,
     normals[baseCenterIdx + 2] = 0.0f;  // Z
     normals[baseCenterIdx + 3] = 0.0f;  // W
 }
+
+// Função modificada para gerar vértices e normais do toro
+void MontaMalhaENormaisToroPorRevolucao(int num_pontos_circulo, int num_pontos_rotacao, 
+                                float R, float r, 
+                                GLfloat* vertices, GLfloat* normais) {
+    // Aloca memória para os ângulos
+    float* malhaCirculo = (float*)malloc(num_pontos_circulo * sizeof(float));
+    float* malhaRotacao = (float*)malloc(num_pontos_rotacao * sizeof(float));
+
+    // Gera os ângulos para o círculo e para a rotação
+    gerarMalha1D(0.0f, 2.0f * M_PI, num_pontos_circulo, malhaCirculo);  // Ângulos do círculo (φ)
+    gerarMalha1D(0.0f, 2.0f * M_PI, num_pontos_rotacao, malhaRotacao);  // Ângulos de rotação (θ)
+
+    int indexVertices = 0;
+    int indexNormais = 0;
+    for (int i = 0; i < num_pontos_rotacao; i++) {
+        float theta = malhaRotacao[i];
+        float cosTheta = cos(theta);
+        float sinTheta = sin(theta);
+
+        for (int j = 0; j < num_pontos_circulo; j++) {
+            float phi = malhaCirculo[j];
+            float cosPhi = cos(phi);
+            float sinPhi = sin(phi);
+
+            // Coordenadas do ponto no círculo (plano XY, deslocado de R)
+            float x = (R + r * cosPhi);
+            float y = r * sinPhi;
+            float z = 0.0f;
+
+            // Rotaciona o ponto ao redor do eixo Y
+            float x_rot = x * cosTheta + z * sinTheta;
+            float y_rot = y;
+            float z_rot = -x * sinTheta + z * cosTheta;
+
+            // Salva o ponto no array de vértices
+            vertices[indexVertices++] = x_rot;
+            vertices[indexVertices++] = y_rot;
+            vertices[indexVertices++] = z_rot;
+            vertices[indexVertices++] = 1.0f; // Coordenada homogênea
+
+            // Cálculo das normais
+            // A normal de um toro é dada por (cosPhi * cosTheta, sinPhi, cosPhi * sinTheta)
+            float nx = cosPhi * cosTheta;
+            float ny = sinPhi;
+            float nz = cosPhi * sinTheta;
+
+            // Normaliza a normal (opcional, mas recomendado)
+            float comprimento = sqrt(nx * nx + ny * ny + nz * nz);
+            if (comprimento != 0.0f) {
+                nx /= comprimento;
+                ny /= comprimento;
+                nz /= comprimento;
+            }
+
+            // Salva a normal no array de normais
+            normais[indexNormais++] = nx;
+            normais[indexNormais++] = ny;
+            normais[indexNormais++] = nz;
+            normais[indexNormais++] = 0.0f; // W da normal (geralmente 0 para vetores)
+        }
+    }
+
+    // Libera a memória alocada
+    free(malhaCirculo);
+    free(malhaRotacao);
+}

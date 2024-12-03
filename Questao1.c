@@ -18,6 +18,7 @@
 #include "myTools2.h"
 #include "auxQuestoes.h"
 
+int shaddingModel=2;
 // Constant
 // ---------------------------------------
 const unsigned int SCR_WIDTH = 600;
@@ -42,14 +43,19 @@ int qtdAngulos;
 // ---------------------------------------
 GLuint shaderProgram;
 GLuint VAO[5];
+
 GLuint VBO1[3];
 GLuint EBO1[1];
+
 GLuint VBO2[2];
 GLuint EBO2[1];
+
 GLuint VBO3[3];
 GLuint EBO3[1];
+
 GLuint VBO4[3];
 GLuint EBO4[1];
+
 GLuint VBO5[2];
 GLuint EBO5[1];
 
@@ -84,13 +90,10 @@ int main(void) {
 void display(GLFWwindow* window) {
     fprintf(stdout, "display::start\n");
     fflush(stdout);
-
     // Define a cor de fundo
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
     // Habilita o teste de profundidade
     glEnable(GL_DEPTH_TEST);
-
     // Configura a matriz de projeção
     GLfloat projMatrix[16];
     frustum(-0.5f, 0.5f, -0.5f, 0.5f, 1.0f, 5.0f, projMatrix);
@@ -124,7 +127,7 @@ void display(GLFWwindow* window) {
         glUniform3f(glGetUniformLocation(shaderProgram, "cameraPos"), cameraX, cameraY, cameraZ);
 
         // Atualizar a posição da luz (se for dinâmica)
-       GLfloat lightX = 0.0f, lightY = 4.0f, lightZ = 1.0f; // Posição fixa ou dinâmica
+        GLfloat lightX = 0.0f, lightY = 4.0f, lightZ = 1.0f; // Posição fixa ou dinâmica
         glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), lightX, lightY, lightZ);
 
         // Atualiza o ângulo de rotação
@@ -332,11 +335,27 @@ void init(void) {
 
     // Create vertex shader
 	// ---------------------------------------
-	GLuint vertexShader = generateShader(GL_VERTEX_SHADER, "./shaderConstante.vert");
-
+    GLuint vertexShader;
+    GLuint fragmentShader;
+    if(shaddingModel==0)
+    {
+        vertexShader = generateShader(GL_VERTEX_SHADER, "./shaderConstante.vert");
     // Create fragment shader
-	GLuint fragmentShader = generateShader(GL_FRAGMENT_SHADER, "./shaderConstante.frag");
-
+	    fragmentShader = generateShader(GL_FRAGMENT_SHADER, "./shaderConstante.frag");
+    }
+    if(shaddingModel==1)
+    {
+        vertexShader = generateShader(GL_VERTEX_SHADER, "./shaderGourant.vert");
+    // Create fragment shader
+	    fragmentShader = generateShader(GL_FRAGMENT_SHADER, "./shaderGourant.frag");
+    }
+    if(shaddingModel==2)
+    {
+        vertexShader = generateShader(GL_VERTEX_SHADER, "./shaderPhong.vert");
+    // Create fragment shader
+	    fragmentShader = generateShader(GL_FRAGMENT_SHADER, "./shaderPhong.frag");
+    }
+	
     // Create Program and link shaders
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
@@ -411,9 +430,8 @@ void init(void) {
 
     //TORO
     GLfloat *verticesToro = (GLfloat *)malloc(4 *qtdAngulos* num_pontos * sizeof(GLfloat));
-    MontaMalhaToroPorRevolucao(num_pontos, qtdAngulos,0.5, 0.25, verticesToro);
     GLfloat *normalsToro = (GLfloat *)malloc(4 * num_pontos * qtdAngulos * sizeof(GLfloat));
-    GerarNormaisToro(num_pontos, qtdAngulos, 0.5f, 0.25f, verticesToro, normalsToro);
+    MontaMalhaENormaisToroPorRevolucao(num_pontos, qtdAngulos, 0.5, 0.25, verticesToro, normalsToro);
     
     //Cubo
     float L=0.5f;
