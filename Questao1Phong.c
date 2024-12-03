@@ -42,7 +42,7 @@ int qtdAngulos;
 // ---------------------------------------
 GLuint shaderProgram;
 GLuint VAO[5];
-GLuint VBO1[2];
+GLuint VBO1[3];
 GLuint EBO1[1];
 GLuint VBO2[2];
 GLuint EBO2[1];
@@ -124,7 +124,7 @@ void display(GLFWwindow* window) {
         glUniform3f(glGetUniformLocation(shaderProgram, "cameraPos"), cameraX, cameraY, cameraZ);
 
         // Atualizar a posição da luz (se for dinâmica)
-       GLfloat lightX = 0.0f, lightY = 2.0f, lightZ = 2.0f; // Posição fixa ou dinâmica
+       GLfloat lightX = 0.0f, lightY = 0.0f, lightZ = 0.0f; // Posição fixa ou dinâmica
         glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), lightX, lightY, lightZ);
 
         // Atualiza o ângulo de rotação
@@ -141,22 +141,29 @@ void display(GLFWwindow* window) {
         GLfloat rotationMatrixCone[16], translationMatrixCone[16];
         GLfloat modelViewMatrixCone[16], tempMatrixCone[16];
 
-        // Rotação do cone
+
+        // Rotação da Esfera
         matrixRotate4x4(angle, 0.0f, 1.0f, 0.0f, rotationMatrixCone);
 
-        // Translação do cone para a posição desejada (por exemplo, x = -1.0)
+        // Translação da Esfera para a posição desejada (por exemplo, x = -1.0)
         matrixTranslate4x4(-1.0f, 1.0f, 0.0f, translationMatrixCone);
 
-        // Combina as transformações: modelViewMatrixCone = viewMatrix * translation * rotation
+        // Combina as transformações: modelo = translação * rotação
         matrixMultiply4x4(translationMatrixCone, rotationMatrixCone, tempMatrixCone);
+
+        // Envia a matriz de modelo (u_modelMatrix) para o shader
+        int modelMatrixLocCone = glGetUniformLocation(shaderProgram, "u_modelMatrix");
+        glUniformMatrix4fv(modelMatrixLocCone, 1, GL_FALSE, tempMatrixCone);
+
+        // Combina com a matriz de visualização: modelViewMatrix = viewMatrix * modelo
         matrixMultiply4x4(viewMatrix, tempMatrixCone, modelViewMatrixCone);
 
-        // Envia a modelViewMatrix do cone para o shader
+        // Envia a matriz de modelo-visão (u_modelViewMatrix) para o shader
         glUniformMatrix4fv(modelViewMatrixLoc, 1, GL_FALSE, modelViewMatrixCone);
 
         // Desenha o cone
         glBindVertexArray(VAO[0]);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDrawElements(GL_TRIANGLES, (num_pontos - 1) * (qtdAngulos - 1) * 6 + 3 * qtdAngulos, GL_UNSIGNED_INT, 0);
 
         // ==========================
@@ -204,8 +211,8 @@ void display(GLFWwindow* window) {
         matrixMultiply4x4(translationMatrixEsfera, rotationMatrixEsfera, tempMatrixEsfera);
 
         // Envia a matriz de modelo (u_modelMatrix) para o shader
-        int modelMatrixLoc = glGetUniformLocation(shaderProgram, "u_modelMatrix");
-        glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, tempMatrixEsfera);
+        int modelMatrixLocEsfera = glGetUniformLocation(shaderProgram, "u_modelMatrix");
+        glUniformMatrix4fv(modelMatrixLocEsfera, 1, GL_FALSE, tempMatrixEsfera);
 
         // Combina com a matriz de visualização: modelViewMatrix = viewMatrix * modelo
         matrixMultiply4x4(viewMatrix, tempMatrixEsfera, modelViewMatrixEsfera);
@@ -226,22 +233,29 @@ void display(GLFWwindow* window) {
         GLfloat rotationMatrixToro[16], translationMatrixToro[16];
         GLfloat modelViewMatrixToro[16], tempMatrixToro[16];
 
-        // Rotação do toro
+        // Rotação do Toro
         matrixRotate4x4(angle, 0.0f, 1.0f, 0.0f, rotationMatrixToro);
 
-        // Translação do toro para a posição desejada (por exemplo, x = -1.0)
+        // Translação do Toro para a posição desejada (por exemplo, x = -1.0)
         matrixTranslate4x4(1.0f, -1.4f, 0.0f, translationMatrixToro);
 
-        // Combina as transformações: modelViewMatrixCone = viewMatrix * translation * rotation
+        // Combina as transformações: modelo = translação * rotação
         matrixMultiply4x4(translationMatrixToro, rotationMatrixToro, tempMatrixToro);
+
+        // Envia a matriz de modelo (u_modelMatrix) para o shader
+        int modelMatrixLocToro = glGetUniformLocation(shaderProgram, "u_modelMatrix");
+        glUniformMatrix4fv(modelMatrixLocToro, 1, GL_FALSE, tempMatrixToro);
+
+        // Combina com a matriz de visualização: modelViewMatrix = viewMatrix * modelo
         matrixMultiply4x4(viewMatrix, tempMatrixToro, modelViewMatrixToro);
 
-        // Envia a modelViewMatrix do toro para o shader
+        // Envia a matriz de modelo-visão (u_modelViewMatrix) para o shader
         glUniformMatrix4fv(modelViewMatrixLoc, 1, GL_FALSE, modelViewMatrixToro);
 
         // Desenha o toro
         glBindVertexArray(VAO[3]);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDrawElements(GL_TRIANGLES, (num_pontos)*(qtdAngulos)*6, GL_UNSIGNED_INT, 0);
 
 
@@ -381,11 +395,14 @@ void init(void) {
     //Cone
     GLfloat *verticesCone = (GLfloat *)malloc(4 *(qtdAngulos* num_pontos+1) * sizeof(GLfloat));
     MontaMalhaReta(num_pontos, PontosControleCone, malha , qtdAngulos, verticesCone);
+    GLfloat *normalsCone = (GLfloat *)malloc(4 * (num_pontos * qtdAngulos+1) * sizeof(GLfloat));
+    GerarNormaisEsfera(num_pontos, qtdAngulos, verticesCone, normalsCone);    
     
     //Cilindro
     GLfloat *verticesCilindro = (GLfloat *)malloc(4 *(qtdAngulos* num_pontos+2) * sizeof(GLfloat));
     MontaMalhaReta(num_pontos, PontosControleCilindro, malha , qtdAngulos, verticesCilindro);
-    
+
+
     //Esfera
     GLfloat *verticesEsfera = (GLfloat *)malloc(4 *qtdAngulos* num_pontos * sizeof(GLfloat));
     MontaMalhaEsferaPorRevolucao(num_pontos, 0.5,qtdAngulos, verticesEsfera);
@@ -501,7 +518,7 @@ void init(void) {
 
 	// Generate Buffer IDs for 2 buffers
     // ---------------------------------------
-    glGenBuffers(2, VBO1);
+    glGenBuffers(3, VBO1);
 
     // Create/activate a Buffer and bind to ID VBO1[0]
     // ---------------------------------------
@@ -536,6 +553,21 @@ void init(void) {
     // Enable vertex data to be transfered to shader
     // ---------------------------------------
     glEnableVertexAttribArray(1);
+
+    //Normais Cone:
+    // Cria e ativa o buffer para as normais
+    glBindBuffer(GL_ARRAY_BUFFER, VBO1[2]);
+
+    // Inicializa o buffer com os dados das normais
+    glBufferData(GL_ARRAY_BUFFER, 4 * (num_pontos * qtdAngulos+1) * sizeof(GLfloat), normalsCone, GL_STATIC_DRAW);
+
+    // Associa os dados de normais ao atributo no shader (location = 2)
+    int normalLocCone = glGetAttribLocation(shaderProgram, "normal");
+    glVertexAttribPointer(normalLocCone, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+    glEnableVertexAttribArray(normalLocCone);
+
+    // Libera a memória usada para calcular as normais
+    free(normalsCone);
 
     GLuint *indicesCone = (GLuint *)malloc(((num_pontos - 1) * (qtdAngulos - 1) * 6+3*qtdAngulos) * sizeof(GLuint));
     GeraIndicesConeComTampa(num_pontos, qtdAngulos, indicesCone);
@@ -663,9 +695,9 @@ void init(void) {
     glBufferData(GL_ARRAY_BUFFER, 4 * num_pontos * qtdAngulos * sizeof(GLfloat), normalsEsfera, GL_STATIC_DRAW);
 
     // Associa os dados de normais ao atributo no shader (location = 2)
-    int normalLoc = glGetAttribLocation(shaderProgram, "normal");
-    glVertexAttribPointer(normalLoc, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-    glEnableVertexAttribArray(normalLoc);
+    int normalLocEsfera = glGetAttribLocation(shaderProgram, "normal");
+    glVertexAttribPointer(normalLocEsfera, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+    glEnableVertexAttribArray(normalLocEsfera);
 
     // Libera a memória usada para calcular as normais
     free(normalsEsfera);
@@ -693,7 +725,7 @@ void init(void) {
 
 	// Generate Buffer IDs for 2 buffers
     // ---------------------------------------
-    glGenBuffers(2, VBO4);
+    glGenBuffers(3, VBO4);
 
     // Create/activate a Buffer and bind to ID VBO4[0]
     // ---------------------------------------
@@ -729,10 +761,24 @@ void init(void) {
     // ---------------------------------------
     glEnableVertexAttribArray(1);
 
+    //Normais Toro:
+    // Cria e ativa o buffer para as normais
+    glBindBuffer(GL_ARRAY_BUFFER, VBO4[2]);
+
+    // Inicializa o buffer com os dados das normais
+    glBufferData(GL_ARRAY_BUFFER, 4 * num_pontos * qtdAngulos * sizeof(GLfloat), normalsToro, GL_STATIC_DRAW);
+
+    // Associa os dados de normais ao atributo no shader (location = 2)
+    int normalLocToro = glGetAttribLocation(shaderProgram, "normal");
+    glVertexAttribPointer(normalLocToro, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+    glEnableVertexAttribArray(normalLocToro);
+
+    // Libera a memória usada para calcular as normais
+    free(normalsToro);
+
     GLuint *indicesToro = (GLuint *)malloc((num_pontos) * (qtdAngulos) * 6 * sizeof(GLuint));
     MontaIndicesToroPorRevolucao(num_pontos,qtdAngulos,indicesToro);
 
-    
     // Initialize Buffer 
     // ---------------------------------------
     glGenBuffers(1, EBO4);

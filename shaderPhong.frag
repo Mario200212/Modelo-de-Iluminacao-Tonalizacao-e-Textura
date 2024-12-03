@@ -26,7 +26,7 @@ void main(void) {
 
     // Componente Especular
     vec3 viewDir = normalize(cameraPos - fragPos);
-    vec3 reflectDir = reflect(-lightDir, normalize(fragNormal));
+    vec3 reflectDir =normalize(-lightDir + 2.0 * dot(lightDir, fragNormal) * fragNormal);// reflect(-lightDir, normalize(fragNormal));
     float RdotV = max(dot(reflectDir, viewDir), 0.0);
     vec3 especular = ks * pow(RdotV, shininess) * lightColor;
 

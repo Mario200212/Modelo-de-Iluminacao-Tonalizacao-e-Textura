@@ -794,29 +794,29 @@ void GerarNormaisToro(int num_pontos_circulo, int num_pontos_rotacao, float R, f
         float cosTheta = cos(theta);
         float sinTheta = sin(theta);
 
-        // Centro do círculo base
+        //Centro do círculo base
         float cx = R * cosTheta;
         float cy = 0.0f;
         float cz = -R * sinTheta;
 
         for (int j = 0; j < num_pontos_circulo; j++) {
-            // Obtém o vértice
+            //Obtém o vértice
             float vx = vertices[index];
             float vy = vertices[index + 1];
             float vz = vertices[index + 2];
 
-            // Calcula o vetor normal (V - C)
+            //Calcula o vetor normal (V - C)
             float nx = vx - cx;
             float ny = vy - cy;
             float nz = vz - cz;
 
-            // Normaliza o vetor
+            //Normaliza o vetor
             float length = sqrt(nx * nx + ny * ny + nz * nz);
             nx /= length;
             ny /= length;
             nz /= length;
 
-            // Salva a normal no array
+            //Salva a normal no array
             normals[index] = nx;
             normals[index + 1] = ny;
             normals[index + 2] = nz;
@@ -827,3 +827,54 @@ void GerarNormaisToro(int num_pontos_circulo, int num_pontos_rotacao, float R, f
     }
 }
 
+// Cone
+
+void GerarNormaisConeComTampa(int num_pontos, int qtdAngulos, GLfloat *vertices, GLfloat *normals) {
+    int idx = 0;
+
+    // Altura e raio do cone (calculados a partir dos pontos de controle)
+    float h = 0.5f; // Altura do cone
+    float r = 0.5f; // Raio da base do cone
+
+    // Fator de normalização
+    float hipotenusa = sqrt(r * r + h * h);
+
+    // Normais para a superfície lateral
+    for (int i = 0; i < qtdAngulos; i++) {
+        float theta = 2.0f * M_PI * i / qtdAngulos;
+        float cosTheta = cos(theta);
+        float sinTheta = sin(theta);
+
+        for (int j = 0; j < num_pontos; j++) {
+            // Inclinação da lateral do cone
+            float nx = r * cosTheta / hipotenusa;
+            float ny = h / hipotenusa;
+            float nz = -r * sinTheta / hipotenusa;
+
+            // Armazenar a normal
+            normals[idx] = nx;
+            normals[idx + 1] = ny;
+            normals[idx + 2] = nz;
+            normals[idx + 3] = 0.0f; // Componente W para vetores
+
+            idx += 4; // Próximo vértice
+        }
+    }
+
+    // Normais para a base do cone
+    int baseStartIdx = qtdAngulos * num_pontos * 4; // Início dos vértices da base
+    for (int i = 0; i < qtdAngulos; i++) {
+        //Cada vértice da base aponta para baixo (y = -1)
+        normals[baseStartIdx + i * 4] = 0.0f;    // X
+        normals[baseStartIdx + i * 4 + 1] = -1.0f; // Y
+        normals[baseStartIdx + i * 4 + 2] = 0.0f;  // Z
+        normals[baseStartIdx + i * 4 + 3] = 0.0f;  // W
+    }
+
+    // Normal para o centro da base (último ponto da base)
+    int baseCenterIdx = baseStartIdx + qtdAngulos * 4; // Índice do ponto central da base
+    normals[baseCenterIdx] = 0.0f;    // X
+    normals[baseCenterIdx + 1] = -1.0f; // Y
+    normals[baseCenterIdx + 2] = 0.0f;  // Z
+    normals[baseCenterIdx + 3] = 0.0f;  // W
+}
